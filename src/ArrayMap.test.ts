@@ -99,13 +99,11 @@ it("reduce", () => {
 });
 it("sortByKey - number", () => {
     const xs = ArrayMap.fromArray([derek, bob], idCat);
-    xs.sortByKey();
-    expect(xs.array()).toEqual([bob, derek]);
+    expect(xs.sortByKey().array()).toEqual([bob, derek]);
 });
 it("sortByKey - string", () => {
     const xs = ArrayMap.fromArray([daisy, tucker], idDog);
-    xs.sortByKey();
-    expect(xs.array()).toEqual([tucker, daisy]);
+    expect(xs.sortByKey().array()).toEqual([tucker, daisy]);
 });
 it("groupBy", () => {
     const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
