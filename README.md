@@ -1,3 +1,9 @@
+# (disclaimer) Don't use this yet
+
+This package is not ready for use.
+
+Updates will involve breaking changes until a 1.0 is published.
+
 # What
 
 A thin wrapper around ES6 "Map" that provides both array-like and map-like methods and functions.

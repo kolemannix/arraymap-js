@@ -7,13 +7,17 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "declaration": true,
     "downlevelIteration": true,
+    "outDir": "dist",
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "noEmit": true,
-    "jsx": "preserve",
     "baseUrl": "src"
   },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "include": ["src", "src/**/*"]
 }

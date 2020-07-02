@@ -1,12 +1,10 @@
 {
   "name": "arraymap-js",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "A Map-like data structure for Identifiable values that provides many array-like operations as well",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "dependencies": {
-    "@types/node": "^14.0.14"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^26.0.3",
     "jest": "^26.1.0",
