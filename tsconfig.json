@@ -1,23 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "declaration": true,
-    "downlevelIteration": true,
-    "outDir": "dist",
-    "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
-    "moduleResolution": "node",
-    "baseUrl": "src"
+    "target": "es6",
+    "declaration": true,
+    "outDir": "./dist"
   },
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
-  "include": ["src", "src/**/*"]
+  "exclude": ["node_modules", "**/__tests__/*"],
+  "include": ["src/**/*"]
 }

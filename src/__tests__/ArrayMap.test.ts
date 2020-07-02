@@ -1,4 +1,4 @@
-import ArrayMap from "./ArrayMap";
+import ArrayMap from "../ArrayMap";
 interface Cat {
     id: number;
     name: string;
