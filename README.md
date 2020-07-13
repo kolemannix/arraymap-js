@@ -6,7 +6,8 @@ Updates will involve breaking changes until a 1.0 is published.
 
 # What
 
-A thin wrapper around ES6 "Map" that provides both array-like and map-like methods and functions.
+A thin wrapper around Array and some Maps that provides relatively efficient array-like and map-like 
+methods and functions. Index-based operations and key-based operations are both usually constant time.
 
 # Why
 
@@ -19,18 +20,18 @@ such as `map` and `filter` (plus some other operations that I miss from other la
 I use a `Map`, but then I can't access elements by index or `push` something to the end, so most often
 I'm just using `Array`, which of course does not know that my elements all have unique IDs.
 
-Enter `ArrayMap`, which does both. In addition to the usual suspects of `set`, `get`, `push`, `map`, and `filter`, it
-provides some additional operations such as `collect`, `groupBy`, `sortByKey`, et. al.
+Enter `ArrayMap`, which does both. In addition to the usual suspects of `put`, `get`, `push`, `map`, and `filter`, it
+provides some additional operations such as `collect`, `groupBy`, `sortByKey`, and more.
 
-I find this to be a highly *convenient* solution that makes state management much easier when building my applications
+I find this to be a highly convenient solution that makes state management much easier when building my applications.
 
 # Performance
 
-It should be noted that, since the use-case here is frontend applications, the optimal use case for `ArrayMap` is
-probably when you have less than ~10,000 elements. Any more than that and you'll want to be careful with 
-certain operations that copy and iterate liberally. Don't use it to build your JS games... actually don't use JS to build games.
+ArrayMap does its best to be efficient, but it is primarily about convenience and correctness, not performance. Since ArrayMap has to maintain additional information
+ about the position of each key within the primary array, some of the operations are a bit more expensive, notably 'remove'.
+  However, it should be more than fast enough for any reasonable frontend use-case. Don't build a game-engine on top of it.
 
-Estimated Time complexity and space complexity properties can be found on each method.
+TODO: Estimated Time complexity and space complexity properties can be found on each method.
 
 # The Basics
 
@@ -53,3 +54,5 @@ users.push(alex);
 //or
 const users = ArrayMap.fromArray([alex], user => user.id);
 ```
+
+# TODO: Document every method

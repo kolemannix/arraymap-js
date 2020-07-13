@@ -1,6 +1,6 @@
 {
   "name": "arraymap-js",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "A Map-like data structure for Identifiable values that provides many array-like operations as well",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
