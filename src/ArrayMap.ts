@@ -1,37 +1,71 @@
-export type Prim = number | string;
+export type Key = number | string;
 
-class ArrayMap<T, K extends Prim> {
-    private tsMap: Map<K, T>;
+export function mapIterator<T, U>(itT: IterableIterator<T>, fn: (t: T) => U): IterableIterator<U> {
+    const next: () => IteratorResult<U> = () => {
+        const n = itT.next();
+        const t: T = n.value;
+        if (!n.done) return {done: false, value: fn(t)};
+        else return {done: true, value: undefined};
+    };
+    return {
+        next: next,
+        [Symbol.iterator]: function () {
+            return this;
+        }
+    };
+}
+
+class ArrayMap<T, K extends Key> {
+    private ts: [K, T][];
+    private indexesByKey: Map<K, number>;
+    private keysByIndex: Map<number, K>;
 
     // @Todo: Maintain these two indices for faster indexOf and getAtIndex
-    // private indexesByKey: Map<K, number>;
-    // private keysByIndex: K[];
 
     readonly identify: (t: T) => K;
 
-    constructor(entries: IterableIterator<[K, T]>, identify: (t: T) => K) {
-        this.tsMap = new Map();
-        // this.indexesByKey = new Map();
-        // this.keysByIndex = [];
-        this.identify = identify;
-
-        let idx = 0;
-        for (const [k, t] of entries) {
-            this.tsMap.set(k, t)
-            idx++;
-        }
+    /**
+     * Requires that `key` is not already present
+     */
+    private doPush(index: number, key: K, t: T): void {
+        this.ts.push([key, t]);
+        this.indexesByKey.set(key, index);
+        this.keysByIndex.set(index, key);
     }
 
-    static fromArray<T, K extends Prim>(items: T[], identify: (t: T) => K) {
+    private updateIndexOfKey(key: K, index: number): void {
+        this.indexesByKey.set(key, index);
+        this.keysByIndex.set(index, key);
+    }
+
+    private clearIndexOfKey(key: K): void {
+        this.indexesByKey.delete(key);
+    }
+
+    constructor(entries: IterableIterator<[K, T]>, identify: (t: T) => K) {
+        this.ts = []
+        this.indexesByKey = new Map();
+        this.keysByIndex = new Map();
+        let idx = 0;
+        for (const [k, t] of entries) {
+            if (this.indexOfKey(k) === undefined) {
+                this.doPush(idx, k, t);
+                idx++;
+            }
+        }
+        this.identify = identify;
+    }
+
+    static fromArray<T, K extends Key>(items: T[], identify: (t: T) => K) {
         const entries = items.map(i => [identify(i), i] as [K, T]);
         return new ArrayMap(entries.values(), identify);
     }
 
-    static clone<T, K extends Prim>(that: ArrayMap<T, K>): ArrayMap<T, K> {
+    static clone<T, K extends Key>(that: ArrayMap<T, K>): ArrayMap<T, K> {
         return new ArrayMap(that.entries(), that.identify);
     }
 
-    static empty<T, K extends Prim>(identify: (t: T) => K): ArrayMap<T, K> {
+    static empty<T, K extends Key>(identify: (t: T) => K): ArrayMap<T, K> {
         return ArrayMap.fromArray([], identify);
     }
 
@@ -47,145 +81,166 @@ class ArrayMap<T, K extends Prim> {
         return Array.from(this);
     }
 
-    values(): IterableIterator<T> {
-        return this.tsMap.values();
+    public keys(): IterableIterator<K> {
+        return mapIterator(this.entries(), pair => pair[0]);
     }
 
-    entries(): IterableIterator<[K, T]> {
-        return this.tsMap.entries();
+    public values(): IterableIterator<T> {
+        const iter: IterableIterator<[K, T]> = this.ts.values();
+        return mapIterator(iter, pair => pair[1]);
+    }
+
+    public entries(): IterableIterator<[K, T]> {
+        return this.ts.values();
     }
 
     public empty(): boolean {
-        return this.values().next().done || false;
+        return this.ts.length === 0;
     }
 
     public nonEmpty(): boolean {
-        return !this.empty();
+        return this.ts.length !== 0;
     }
 
     get length(): number {
-        return this.tsMap.size;
+        return this.ts.length;
     }
 
     public size(): number {
         return this.length;
     }
 
-    /**
-     * @Slow linear
-     */
-    public indexOfKey(key: K, fromIndex?: number): number {
-        let idx = fromIndex || 0;
-        for (const k of this.tsMap.keys()) {
-            if (k === key) return idx;
-            idx++;
-        }
-        return -1;
+    public indexOfKey(key: K): number | undefined {
+        return this.indexesByKey.get(key);
     }
 
-    /**
-     * @Slow linear
-     */
-    public indexOf(t: T, fromIndex?: number): number {
+    public indexOf(t: T): number | undefined {
         const key = this.identify(t);
-        return this.indexOfKey(key, fromIndex);
+        return this.indexOfKey(key);
     }
 
-    /**
-     * @Slow linear
-     */
     public getAtIndex(index: number): T | undefined {
-        let idx = 0;
-        for (const t of this) {
-            if (idx === index) return t;
-            idx++;
+        const item = this.ts[index];
+        if (item === undefined) return undefined;
+        else return item[1];
+    }
+
+    public removeAtIndex(index: number): boolean {
+        const key = this.keysByIndex.get(index);
+        if (key) {
+            this.remove(key);
+            return true;
+        } else {
+            return false;
         }
-        return undefined;
     }
 
     public head(): T | undefined {
-        return this.tsMap.values().next().value;
+        return this.getAtIndex(0);
     }
 
-    // TODO: Use Function.length to accept 3rd argument efficiently
+    // I can't make much sense of how to do a .map that returns an ArrayMap
+    // without asking for a new ID function...
+    // public map<U>(fn: (value: T, index: number) => U): ArrayMap<T, K> {
+    //     const iter = this.ts.values();
+    //     let idx = 0;
+    //     const mapped = mapIterator(iter, pair => {
+    //        const [k, t] = pair;
+    //        const u = fn(t, idx);
+    //        idx++;
+    //        return [k, u];
+    //     });
+    //     return new ArrayMap(mapped, this.identify);
+    // }
+
+    // @TODO: Use Function.length to accept 3rd argument efficiently
     public map<U>(fn: (value: T, index: number) => U): U[] {
-        const entries = this.tsMap.entries();
-        const res = [];
-        let idx = 0;
-        for (const t of entries) {
-            res.push(fn(t[1], idx));
-            idx += 1;
-        }
-        return res;
+        // TODO: Use mapIterator
+        return this.ts.map((pair, idx) => fn(pair[1], idx));
     }
 
-    // TODO: Use Function.length to accept 3rd argument efficiently
+    // @TODO: Use Function.length to accept 3rd argument efficiently
     public forEach(fn: (t: T, index: number) => void): void {
-        const entries = this.tsMap.entries();
-        let idx = 0;
-        for (const t of entries) {
-            fn(t[1], idx);
-            idx += 1;
-        }
+        return this.ts.forEach((pair, idx) => fn(pair[1], idx));
     }
 
     public filter(fn: (t: T, index: number) => boolean): ArrayMap<T, K> {
-        const entries = this.tsMap.entries();
-        const res: [K, T][] = [];
+        const copy = ArrayMap.empty<T, K>(this.identify);
         let idx = 0;
-        for (const t of entries) {
-            if (fn(t[1], idx)) res.push(t);
+        for (const [k, t] of this.entries()) {
+            if (fn(t, idx)) copy.doPush(idx, k, t);
             idx += 1;
         }
-        return new ArrayMap<T, K>(res.values(), this.identify);
+        return copy;
     }
 
-    public update(key: K, newT: ((t: T) => T) | T): ArrayMap<T, K> {
-        const existing = this.tsMap.get(key);
-        if (existing) {
-            if (typeof newT === "function") {
-                const f = newT as (t: T) => T;
-                this.tsMap.set(key, f(existing));
-            } else {
-                this.tsMap.set(key, newT);
-            }
+    public update(key: K, newT: ((t: T) => T) | T): void {
+        const index = this.indexOfKey(key);
+        let updated;
+        if (typeof newT === "function") {
+            const f = newT as (t: T) => T;
+            const [k, t] = this.ts[index];
+            updated = [k, f(t)];
+        } else {
+            updated = [key, newT];
         }
-        return this;
+        this.ts[index] = updated;
     }
 
-    /**
-     * Inserts at end for new key, updates in place for existing key
-     */
-    public put(t: T): ArrayMap<T, K> {
+    public put(t: T): void {
         const key = this.identify(t);
-        this.tsMap.set(key, t);
-        return this;
+        const exists = this.contains(key);
+        if (exists) {
+            this.update(key, t);
+        } else {
+            this.push(t);
+        }
     }
 
     /**
      * Inserts at end, even for existing values
      */
-    public push(t: T): ArrayMap<T, K> {
-        const key = this.identify(t);
-        this.tsMap.delete(key);
-        this.tsMap.set(key, t);
-        return this;
+    public push(...items: T[]): void {
+        let n = this.length;
+        for (const t of items) {
+            const key = this.identify(t);
+            const indexOf = this.indexOfKey(key);
+            if (this.indexOfKey(key) === undefined) {
+                this.doPush(n, key, t);
+                n++;
+            }
+        }
     }
 
     public contains(key: K): boolean {
-        return this.tsMap.has(key);
+        return this.indexesByKey.has(key);
     }
 
     public get(key: K): T | undefined {
-        return this.tsMap.get(key);
+        const idx = this.indexesByKey.get(key);
+        if (idx) return this.getAtIndex(idx);
+        else return undefined;
     }
 
     public remove(key: K): boolean {
-        return this.tsMap.delete(key);
+        const start = this.indexOfKey(key);
+        if (start) {
+            this.ts.splice(start, 1);
+            this.clearIndexOfKey(key);
+            let n = start;
+            while (n < this.length) {
+                let [k, _t] = this.ts[n];
+                this.updateIndexOfKey(k, n);
+                n++;
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public sortByKey(): ArrayMap<T, K> {
-        const arr = Array.from(this.tsMap.entries());
+        const arr = Array.from(this.ts.values());
         arr.sort((a, b) => {
             const aKey = a[0];
             if (typeof aKey === "string") {
@@ -256,37 +311,27 @@ class ArrayMap<T, K extends Prim> {
         return map;
     }
 
-    /**
-     * @Slow I think we should manually slice the iterator and do a bit better
-     */
     public slice(start?: number, end?: number): ArrayMap<T, K> {
-        // TODO: Better performance from a direct impl?
         const arr = Array.from(this.entries()).slice(start, end);
         return new ArrayMap(arr.values(), this.identify);
     }
 
-    /**
-     * @Slow Just goes to array and back.
-     */
     public splice(start: number, deleteCount: number, ...items: T[]): ArrayMap<T, K> {
-        const ts = Array.from(this.entries());
-        const idItems: [K, T][] = items.map(i => [this.identify(i), i]);
-        ts.splice(start, deleteCount, ...idItems);
-        return new ArrayMap(ts.values(), this.identify);
+        const toInsert: [K, T][] = items.map(i => [this.identify(i), i]);
+        const newTs = [...this.ts];
+        newTs.splice(start, deleteCount, ...toInsert);
+        return new ArrayMap(newTs.values(), this.identify);
     }
 
     /**
      * In the event of a duplicate key, the provided argument elements get priority
      */
-    public unshift(...items: T[]): ArrayMap<T, K> {
-        const shifted: Map<K, T> = new Map();
+    public prepend(...items: T[]): ArrayMap<T, K> {
+        const newItems: [K, T][] = [];
         for (const t of items) {
-            shifted.set(this.identify(t), t);
+            newItems.push([this.identify(t), t]);
         }
-        for (const [k, v] of this.entries()) {
-            shifted.set(k, v);
-        }
-        return new ArrayMap(shifted.entries(), this.identify);
+        return new ArrayMap([...newItems, ...Array.from(this.entries())].values(), this.identify);
     }
 }
 

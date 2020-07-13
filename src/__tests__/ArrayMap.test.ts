@@ -46,8 +46,8 @@ it("indexOf", () => {
     expect(xs.indexOf(2)).toEqual(1);
     expect(xs.indexOf(3)).toEqual(2);
 
-    expect(xs.indexOf(0)).toEqual(-1);
-    expect(xs.indexOf(4)).toEqual(-1);
+    expect(xs.indexOf(0)).toEqual(undefined);
+    expect(xs.indexOf(4)).toEqual(undefined);
 });
 it("indexOfKey", () => {
     const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
@@ -55,8 +55,13 @@ it("indexOfKey", () => {
     expect(xs.indexOfKey(jane.id)).toEqual(1);
     expect(xs.indexOfKey(derek.id)).toEqual(2);
 
-    expect(xs.indexOfKey(0)).toEqual(-1);
-    expect(xs.indexOfKey(4)).toEqual(-1);
+    expect(xs.indexOfKey(0)).toEqual(undefined);
+    expect(xs.indexOfKey(4)).toEqual(undefined);
+});
+it("contains", () => {
+    const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
+    expect(xs.contains(bob.id)).toEqual(true);
+    expect(xs.contains(999)).toEqual(false);
 });
 it("head", () => {
     const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
@@ -68,13 +73,43 @@ it("ArrayMap.map", () => {
     expect(xs.map(x => x + 1)).toEqual([2, 3, 4]);
     expect(xs.map((x, idx) => idx)).toEqual([0, 1, 2]);
 });
-it("set", () => {
+it("push", () => {
     const xs = ArrayMap.empty(idCat);
     xs.push(bob);
     xs.push(jane);
     xs.push(bob);
-    expect(xs.array()).toEqual([jane, bob]);
+    expect(xs.array()).toEqual([bob, jane]);
 });
+it("constructor with dupes",() => {
+    const xs = ArrayMap.fromArray([bob, jane, bob], idCat);
+    expect(xs.array()).toEqual([bob, jane]);
+})
+it("remove (by key)", () => {
+    const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
+    expect(xs.remove(21)).toEqual(false);
+    const result = xs.remove(jane.id);
+    expect(result).toEqual(true);
+
+    expect(xs.indexOfKey(bob.id)).toEqual(0);
+    expect(xs.indexOfKey(jane.id)).toBeUndefined();
+    expect(xs.indexOfKey(derek.id)).toEqual(1);
+
+    expect(xs.getAtIndex(0)).toEqual(bob);
+    expect(xs.getAtIndex(1)).toEqual(derek);
+})
+it("remove (by index)", () => {
+    const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
+    expect(xs.removeAtIndex(21)).toEqual(false);
+    const result = xs.removeAtIndex(1);
+    expect(result).toEqual(true);
+
+    expect(xs.indexOfKey(bob.id)).toEqual(0);
+    expect(xs.indexOfKey(jane.id)).toBeUndefined();
+    expect(xs.indexOfKey(derek.id)).toEqual(1);
+
+    expect(xs.getAtIndex(0)).toEqual(bob);
+    expect(xs.getAtIndex(1)).toEqual(derek);
+})
 it("update", () => {
     const xs = ArrayMap.empty(idCat);
     xs.put(bob);
@@ -133,7 +168,7 @@ it("splice insert", () => {
     const result = xs.splice(0, 0, sue);
     expect(result.array()).toEqual([sue, bob, jane, derek]);
 });
-it("unshift", () => {
+it("prepend", () => {
     const xs = ArrayMap.fromArray([bob, jane, derek], idCat);
-    expect(xs.unshift(sue, jane).array()).toEqual([sue, jane, bob, derek]);
+    expect(xs.prepend(sue, jane).array()).toEqual([sue, jane, bob, derek]);
 });
