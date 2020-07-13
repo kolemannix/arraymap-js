@@ -20,8 +20,6 @@ class ArrayMap<T, K extends Key> {
     private indexesByKey: Map<K, number>;
     private keysByIndex: Map<number, K>;
 
-    // @Todo: Maintain these two indices for faster indexOf and getAtIndex
-
     readonly identify: (t: T) => K;
 
     /**
@@ -94,7 +92,7 @@ class ArrayMap<T, K extends Key> {
         return this.ts.values();
     }
 
-    public empty(): boolean {
+    public isEmpty(): boolean {
         return this.ts.length === 0;
     }
 
@@ -168,7 +166,7 @@ class ArrayMap<T, K extends Key> {
         const copy = ArrayMap.empty<T, K>(this.identify);
         let idx = 0;
         for (const [k, t] of this.entries()) {
-            if (fn(t, idx)) copy.doPush(idx, k, t);
+            if (fn(t, idx)) copy.doPush(copy.length, k, t);
             idx += 1;
         }
         return copy;
@@ -204,7 +202,6 @@ class ArrayMap<T, K extends Key> {
         let n = this.length;
         for (const t of items) {
             const key = this.identify(t);
-            const indexOf = this.indexOfKey(key);
             if (this.indexOfKey(key) === undefined) {
                 this.doPush(n, key, t);
                 n++;

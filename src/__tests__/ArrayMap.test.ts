@@ -19,8 +19,8 @@ const tucker = { id: "d0", name: "tucker" };
 const daisy = { id: "d1", name: "daisy" };
 
 it("empty", () => {
-    expect(emptyCats.empty()).toEqual(true);
-    expect(ArrayMap.fromArray([1, 2, 3], x => x).empty()).toEqual(false);
+    expect(emptyCats.isEmpty()).toEqual(true);
+    expect(ArrayMap.fromArray([1, 2, 3], x => x).isEmpty()).toEqual(false);
 });
 it("nonEmpty", () => {
     expect(emptyCats.nonEmpty()).toEqual(false);
@@ -122,6 +122,33 @@ it("spread", () => {
     const withJane = [...xs, jane];
     expect(withJane).toEqual([bob, jane]);
 });
+it("keys", () => {
+    const xs = ArrayMap.fromArray([bob, derek], idCat);
+    expect(Array.from(xs.keys())).toEqual([bob.id, derek.id]);
+})
+it("filter", () => {
+    const xs = ArrayMap.fromArray([1, 2, 3, 4, 5, 6, 7], x => x);
+    const result = xs.filter(x => x === 3 || x === 6);
+    expect(result.size()).toEqual(2);
+    expect(result.array()).toEqual([3, 6]);
+
+    expect(result.indexOf(3)).toEqual(0);
+    expect(result.indexOfKey(3)).toEqual(0);
+
+    expect(result.indexOf(6)).toEqual(1);
+    expect(result.indexOfKey(6)).toEqual(1);
+
+});
+it("collect", () => {
+    const xs = ArrayMap.fromArray([bob, derek, { id: 222, name: "" }], cat => cat.name);
+    const result = xs.collect<string>(cat => cat.name.charAt(0), x => x);
+    expect(result.array()).toEqual(["B", "D"]);
+})
+it("collectArray", () => {
+    const xs = ArrayMap.fromArray([bob, derek, { id: 222, name: "" }], idCat);
+    const result = xs.collectArray(cat => cat.name.charAt(0));
+    expect(result).toEqual(["B", "D"]);
+})
 it("fold", () => {
     const xs = ArrayMap.fromArray([1, 2, 3, 4, 5, 6, 7], x => x);
     const weirdSum = xs.fold(20, (a, b) => a + b);
