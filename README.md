@@ -1,9 +1,3 @@
-# (disclaimer) Don't use this yet
-
-This package is not ready for use.
-
-Updates will involve breaking changes until a 1.0 is published.
-
 # What
 
 A thin wrapper around Array and some Maps that provides relatively efficient array-like and map-like 
@@ -29,9 +23,7 @@ I find this to be a highly convenient solution that makes state management much 
 
 ArrayMap does its best to be efficient, but it is primarily about convenience and correctness, not performance. Since ArrayMap has to maintain additional information
  about the position of each key within the primary array, some of the operations are a bit more expensive, notably 'remove'.
-  However, it should be more than fast enough for any reasonable frontend use-case. Don't build a game-engine on top of it.
-
-TODO: Estimated Time complexity and space complexity properties can be found on each method.
+  However, it should be more than fast enough for any reasonable frontend use case. Don't build a game-engine on top of it.
 
 # The Basics
 
@@ -55,4 +47,6 @@ users.push(alex);
 const users = ArrayMap.fromArray([alex], user => user.id);
 ```
 
-# TODO: Document every method
+# Usage
+IDE dot completion is your friend here, as the names, docstrings, and types of every method should
+explain its usage. For constructors, try `ArrayMap.`. For operations on an ArrayMap `x`, try `x.`

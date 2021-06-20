@@ -146,7 +146,7 @@ it("collect", () => {
 })
 it("collectArray", () => {
     const xs = ArrayMap.fromArray([bob, derek, { id: 222, name: "" }], idCat);
-    const result = xs.collectArray(cat => cat.name.charAt(0));
+    const result = xs.collectToArray(cat => cat.name.charAt(0));
     expect(result).toEqual(["B", "D"]);
 })
 it("fold", () => {
